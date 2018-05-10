@@ -230,8 +230,8 @@ pygame.init()
 pygame.mouse.set_visible(False)
 ##w = pygame.display.Info().current_w
 ##h = pygame.display.Info().current_h
-w = 800
-h = 600
+w = 1024
+h = 768
 screenSize = (w,h)
 screen = pygame.display.set_mode(screenSize,pygame.FULLSCREEN)
 
