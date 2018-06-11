@@ -21,11 +21,22 @@ from threading import Thread
 #######################################
 # FONCTIONS
 
+#Callback du switch run
+#def runCallback
+
+
 # Callback du bouton déclencheur
 def buttonCallback(channel):
     global photomaticState
     print("Bouton pressé")
     photomaticState = "takePicture"
+
+#
+def saveToDisk():
+    '''
+    Cherche si un disque dur est connecté, crée un dossier "photomatic". Fait clignoter la led auxiliaire si un disque n'est pas connecté.
+    :return: renvoie le chmemin vers lequel enregistrer les fichiers
+    '''
 
 # Commande de l'appareil photo et chargement de l'image sur le pi
 def cameraShutter():
@@ -219,9 +230,24 @@ diaporamaTime = int(3)
 lastPicTime = int(5)
 
 #***************** IO Settings  *************
-PIN_SWITCH_IN = int(24)
-PIN_PWM_LED = int(18)
 
+#Inputs
+PIN_SWITCH_IN = int(19)
+PIN_RUN = int(4)
+PIN_OVERLAY = int(27)
+PIN_IN1 = int(26)
+PIN_SW3 = int(5)
+PIN_SW4 = int(17)
+PIN_SW5 = int(22)
+PIN_SW6 = int(6)
+
+#Outputs
+PIN_PWM_LED = int(18)
+PIN_LED = int(25)
+PIN_OUT1 = int(23)
+PIN_OUT2 = int(24)
+
+#Photo path
 FOLDER_PHOTOS = "Original/"
 
 
@@ -231,7 +257,7 @@ pygame.mouse.set_visible(False)
 ##w = pygame.display.Info().current_w
 ##h = pygame.display.Info().current_h
 w = 1024
-h = 768
+h = 768u7
 screenSize = (w,h)
 screen = pygame.display.set_mode(screenSize,pygame.FULLSCREEN)
 
@@ -250,12 +276,20 @@ GPIO.setmode(GPIO.BCM)
 GPIO.setup(PIN_SWITCH_IN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.add_event_detect(PIN_SWITCH_IN,GPIO.FALLING, callback=buttonCallback, bouncetime = 200)
 
+#LED PWM
 GPIO.setup(PIN_PWM_LED, GPIO.OUT)
 ledPWM = GPIO.PWM(PIN_PWM_LED,100)
-
 ledPWM.start(0)
-
 ledIdle()
+
+#Switch Run
+
+GPIO.setup(PIN_RUN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.add_event_detect(PIN_RUN,GPIO.FALLING, callback=runCallback, bouncetime = 200)
+
+#LED Out
+GPIO.setup(PIN_LED, GPIO.OUT)
+
 #Main Loop
 photomaticState = "idle"
 
