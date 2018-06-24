@@ -6,6 +6,7 @@
 
 from PIL import Image
 import subprocess
+from subprocess import check_output, CalledProcessError
 import time
 from time import gmtime, strftime, sleep
 import logging
@@ -15,6 +16,7 @@ import pygame
 import random
 import sys
 from threading import Thread
+from glob import glob
 #import physicalUI
 #import Reference as r
 
@@ -31,12 +33,24 @@ def buttonCallback(channel):
     print("Bouton pressé")
     photomaticState = "takePicture"
 
-#
-def saveToDisk():
+# Permet d'obtenir les devices USB connectés au raspberry
+def get_usb_devices():
+    sdb_devices = map(os.path.realpath, glob('/sys/block/sd*'))
+    usb_devices = (dev for dev in sdb_devices
+        if 'usb' in dev.split('/')[5])
+    return dict((os.path.basename(dev), dev) for dev in usb_devices)
+
+# Permet de monter le device USB si ce n'est pas le cas. Retrourne le chemin de la partition.
+def get_mount_points(devices=None):
     '''
     Cherche si un disque dur est connecté, crée un dossier "photomatic". Fait clignoter la led auxiliaire si un disque n'est pas connecté.
     :return: renvoie le chmemin vers lequel enregistrer les fichiers
     '''
+    devices = devices or get_usb_devices() # if devices are None: get_usb_devices
+    output = check_output(['mount']).splitlines()
+    is_usb = lambda path: any(dev in path for dev in devices)
+    usb_info = (line for line in output if is_usb(line.split()[0]))
+    return [(info.split()[0], info.split()[2]) for info in usb_info]
 
 # Commande de l'appareil photo et chargement de l'image sur le pi
 def cameraShutter():
@@ -45,7 +59,7 @@ def cameraShutter():
     :return: le chemin vers la photo qui vient d'être prise
     '''
     imageName = "photomatic_"+ strftime("%Y-%m-%d_%H%M%S",gmtime()) + ".jpg"
-    imageFilePath = FOLDER_PHOTOS + imageName
+    imageFilePath = DRIVE + FOLDER_PHOTOS + imageName
     gpout=""
     
     try:
@@ -257,9 +271,9 @@ pygame.mouse.set_visible(False)
 ##w = pygame.display.Info().current_w
 ##h = pygame.display.Info().current_h
 w = 1024
-h = 768u7
+h = 768
 screenSize = (w,h)
-screen = pygame.display.set_mode(screenSize,pygame.FULLSCREEN)
+screen = pygame.display.set_mode(screenSize) #,pygame.FULLSCREEN)
 
 #*****************Logging Settings*************
 logging.basicConfig(filename="photomaticLog.txt",
@@ -284,8 +298,8 @@ ledIdle()
 
 #Switch Run
 
-GPIO.setup(PIN_RUN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-GPIO.add_event_detect(PIN_RUN,GPIO.FALLING, callback=runCallback, bouncetime = 200)
+##GPIO.setup(PIN_RUN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+##GPIO.add_event_detect(PIN_RUN,GPIO.FALLING, callback=runCallback, bouncetime = 200)
 
 #LED Out
 GPIO.setup(PIN_LED, GPIO.OUT)
@@ -299,6 +313,16 @@ diaporamaRunning = False
 diapoThread = Thread(target=diaporama)
 diapoThread.start()
 
+try:
+    DRIVE = get_mount_points()
+except Exception as e:
+    logging.error("Problème de connexion du disque dur")
+    logging.error(e)
+else:
+    logging.debug("Disque dur connecté et chemin de fichier transmis")            
+            
+DRIVE = get_mount_points()
+#print get_mount_points()
 
 
 try:
