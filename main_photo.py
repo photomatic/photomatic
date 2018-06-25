@@ -6,6 +6,7 @@
 
 from PIL import Image
 import subprocess
+##
 from subprocess import check_output, CalledProcessError
 import time
 from time import gmtime, strftime, sleep
@@ -16,7 +17,11 @@ import pygame
 import random
 import sys
 from threading import Thread
-from glob import glob
+##
+from glob import glob 
+import pyudev
+import psutil
+
 #import physicalUI
 #import Reference as r
 
@@ -33,24 +38,25 @@ def buttonCallback(channel):
     print("Bouton pressé")
     photomaticState = "takePicture"
 
-# Permet d'obtenir les devices USB connectés au raspberry
-def get_usb_devices():
-    sdb_devices = map(os.path.realpath, glob('/sys/block/sd*'))
-    usb_devices = (dev for dev in sdb_devices
-        if 'usb' in dev.split('/')[5])
-    return dict((os.path.basename(dev), dev) for dev in usb_devices)
-
 # Permet de monter le device USB si ce n'est pas le cas. Retrourne le chemin de la partition.
 def get_mount_points(devices=None):
     '''
     Cherche si un disque dur est connecté, crée un dossier "photomatic". Fait clignoter la led auxiliaire si un disque n'est pas connecté.
     :return: renvoie le chmemin vers lequel enregistrer les fichiers
     '''
-    devices = devices or get_usb_devices() # if devices are None: get_usb_devices
-    output = check_output(['mount']).splitlines()
-    is_usb = lambda path: any(dev in path for dev in devices)
-    usb_info = (line for line in output if is_usb(line.split()[0]))
-    return [(info.split()[0], info.split()[2]) for info in usb_info]
+    
+##    context = pyudev.Context()
+##
+##    removable = [device for device in context.list_devices(subsystem='block', DEVTYPE='disk') if device.attributes.asstring('removable') == "1"]
+##    for device in removable:
+##        partitions = [device.device_node for device in context.list_devices(subsystem='block', DEVTYPE='partition', parent=device)]
+##        print("All removable partitions: {}".format(", ".join(partitions)))
+##        print("Mounted removable partitions:")
+    for p in psutil.disk_partitions():
+            #if p.device in partitions:
+        print("  {}: {}".format(p.device, p.mountpoint))
+
+
 
 # Commande de l'appareil photo et chargement de l'image sur le pi
 def cameraShutter():
@@ -59,16 +65,16 @@ def cameraShutter():
     :return: le chemin vers la photo qui vient d'être prise
     '''
     imageName = "photomatic_"+ strftime("%Y-%m-%d_%H%M%S",gmtime()) + ".jpg"
-    imageFilePath = DRIVE + FOLDER_PHOTOS + imageName
+    imageFilePath = FOLDER_PHOTOS + imageName
     gpout=""
     
     try:
         gpout = subprocess.check_output("gphoto2 --capture-image-and-download --keep-raw --filename " + imageFilePath, stderr=subprocess.STDOUT, shell=True)
         
-##        if 'ERROR' in gpout:
-##            print (gpout)
-##            logging.error(gpout)
-##            raise IOError("La commande a échoué au niveau de Gphoto pour la photo:" + imageFilePath)
+        if 'ERROR' in gpout:
+            print (gpout)
+            logging.error(gpout)
+            raise IOError("La commande a échoué au niveau de Gphoto pour la photo:" + imageFilePath)
 	
     except subprocess.CalledProcessError as e:
         logging.error("La photo ne peut pas être prise. La caméra est probablement en cause")
@@ -86,10 +92,10 @@ def cameraShutter():
 def ledPulse():
     for x in range (0,100,1):
         ledPWM.ChangeDutyCycle(x)
-        time.sleep(0.001)
+        time.sleep(0.005)
     for x in range (100,0,-1):
         ledPWM.ChangeDutyCycle(x)
-        time.sleep(0.001)
+        time.sleep(0.005)
         
 # Envoie les LEDs à fond les ballons 
 def ledFull():
@@ -148,7 +154,7 @@ def displayText(textToPrint,blackScreen):
     screen.blit(text,textrect)
     
     pygame.display.flip()
-	
+
 # Permet d'afficher un diaporama	
 def diaporama():
     """
@@ -246,7 +252,7 @@ lastPicTime = int(5)
 #***************** IO Settings  *************
 
 #Inputs
-PIN_SWITCH_IN = int(19)
+PIN_SWITCH_IN = int(13)
 PIN_RUN = int(4)
 PIN_OVERLAY = int(27)
 PIN_IN1 = int(26)
@@ -262,7 +268,7 @@ PIN_OUT1 = int(23)
 PIN_OUT2 = int(24)
 
 #Photo path
-FOLDER_PHOTOS = "Original/"
+FOLDER_PHOTOS = "/media/pi/BROWNIE/Original/"
 
 
 #*****************Screen Settings*************
@@ -355,4 +361,4 @@ except KeyboardInterrupt:
     print ("Le process a été arrêté au moyen du clavier")
     #Eteindre toutes les LEDs avec un signe distinctif
     logging.debug("Le programme a été arrêté au moyen du clavier")
-    GPIO.cleanup
+    GPIO.cleanup()
