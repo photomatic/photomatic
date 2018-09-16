@@ -3,11 +3,15 @@
 # coding: utf-8
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 # Essai du reset du commit
 
 =======
 #Test du script de pull pour vérifier que cela fonctionne
 >>>>>>> Essai du script de pull
+=======
+#Test du script de pull pour vérifier que cela fonctionne
+>>>>>>> 73db38198b275777dbe1c77703cbe4f3994a5643
 
 #######################################
 # IMPORTATION DES PACKAGES
@@ -261,7 +265,7 @@ def photoCycle(lastPicTime):
     #displayText("3", True)
     #ledPulse(0.005)
     #displayText("2", True)
-    ledPulse(0.005)
+    ledPulse(0.001)
     displayText("", True)
     ledPulse(0.001)
     ledPulse(0.001)
@@ -380,7 +384,7 @@ PIN_OUT1 = int(23)
 PIN_OUT2 = int(24)
 
 #Photo path
-FOLDER_PHOTOS = "/media/pi/PHOTOMATIC1/Original/"
+FOLDER_PHOTOS = "/media/pi/PHOTOMATIC/Original/"
 
 
 #*****************GPIO Settings*************
