@@ -1,0 +1,49 @@
+INFO: 09/09/2018 06:13:12 Le programme Photomatic est lancé!
+DEBUG: 09/09/2018 06:13:12 Disque dur connecté et chemin de fichier transmis
+DEBUG: 09/09/2018 06:13:49 Une photo a été prise avec succès
+INFO: 09/09/2018 06:16:43 Le programme Photomatic est lancé!
+DEBUG: 09/09/2018 06:16:43 Disque dur connecté et chemin de fichier transmis
+DEBUG: 09/09/2018 06:17:14 Une photo a été prise avec succès
+DEBUG: 09/09/2018 06:17:29 Une photo a été prise avec succès
+DEBUG: 09/09/2018 06:18:01 Une photo a été prise avec succès
+INFO: 09/09/2018 06:18:36 Le programme Photomatic est lancé!
+DEBUG: 09/09/2018 06:18:39 Disque dur connecté et chemin de fichier transmis
+DEBUG: 09/09/2018 06:19:12 Une photo a été prise avec succès
+INFO: 09/09/2018 06:19:51 Le programme Photomatic est lancé!
+DEBUG: 09/09/2018 06:19:51 Disque dur connecté et chemin de fichier transmis
+DEBUG: 09/09/2018 06:20:36 Une photo a été prise avec succès
+INFO: 09/09/2018 06:23:40 Le programme Photomatic est lancé!
+DEBUG: 09/09/2018 06:23:40 Disque dur connecté et chemin de fichier transmis
+DEBUG: 09/09/2018 06:24:45 Une photo a été prise avec succès
+INFO: 09/09/2018 06:25:13 Le programme Photomatic est lancé!
+DEBUG: 09/09/2018 06:25:13 Disque dur connecté et chemin de fichier transmis
+DEBUG: 09/09/2018 06:26:45 Une photo a été prise avec succès
+INFO: 09/09/2018 06:35:24 Le programme Photomatic est lancé!
+DEBUG: 09/09/2018 06:35:24 Disque dur connecté et chemin de fichier transmis
+INFO: 09/09/2018 06:38:47 Le programme Photomatic est lancé!
+DEBUG: 09/09/2018 06:38:47 Disque dur connecté et chemin de fichier transmis
+INFO: 09/09/2018 06:45:06 Le programme Photomatic est lancé!
+DEBUG: 09/09/2018 06:45:06 Disque dur connecté et chemin de fichier transmis
+DEBUG: 09/09/2018 06:45:57 Une photo a été prise avec succès
+INFO: 09/09/2018 06:56:39 Le programme Photomatic est lancé!
+DEBUG: 09/09/2018 06:56:39 Disque dur connecté et chemin de fichier transmis
+DEBUG: 09/09/2018 06:58:09 Une photo a été prise avec succès
+INFO: 09/09/2018 07:12:18 Le programme Photomatic est lancé!
+DEBUG: 09/09/2018 07:12:18 Disque dur connecté et chemin de fichier transmis
+ERROR: 09/09/2018 07:13:47 La photo ne peut pas être prise. La caméra est probablement en cause
+ERROR: 09/09/2018 07:13:47 Command 'gphoto2 --capture-image-and-download --keep-raw --filename /media/pi/PHOTOMATIC/Original/photomatic_2018-09-09_171346.jpg' returned non-zero exit status 1
+ERROR: 09/09/2018 07:13:47 Unable to take photo as camera is not turned on, out of focus or battery is dead
+ERROR: 09/09/2018 07:13:47 Problème dans la fonction photocycle
+ERROR: 09/09/2018 07:13:47 Camera is not responding, battery is dead, out of focus or camera is not turned on
+INFO: 09/09/2018 07:27:40 Le programme Photomatic est lancé!
+DEBUG: 09/09/2018 07:27:40 Disque dur connecté et chemin de fichier transmis
+DEBUG: 09/09/2018 07:28:09 Une photo a été prise avec succès
+INFO: 09/09/2018 07:31:25 Le programme Photomatic est lancé!
+DEBUG: 09/09/2018 07:31:25 Disque dur connecté et chemin de fichier transmis
+DEBUG: 09/09/2018 07:31:45 Une photo a été prise avec succès
+DEBUG: 09/09/2018 07:32:02 Une photo a été prise avec succès
+INFO: 09/09/2018 07:33:01 Le programme Photomatic est lancé!
+DEBUG: 09/09/2018 07:33:01 Disque dur connecté et chemin de fichier transmis
+INFO: 09/09/2018 07:33:27 Le programme Photomatic est lancé!
+DEBUG: 09/09/2018 07:33:27 Disque dur connecté et chemin de fichier transmis
+DEBUG: 09/09/2018 07:33:46 Une photo a été prise avec succès

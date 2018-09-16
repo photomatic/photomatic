@@ -2,6 +2,9 @@
 # -*- coding: utf-8 -*-
 # coding: utf-8
 
+# Essai du reset du commit
+
+
 #######################################
 # IMPORTATION DES PACKAGES
 
@@ -254,7 +257,7 @@ def photoCycle(lastPicTime):
     #displayText("3", True)
     #ledPulse(0.005)
     #displayText("2", True)
-    ledPulse(0.001)
+    ledPulse(0.005)
     displayText("", True)
     ledPulse(0.001)
     ledPulse(0.001)
@@ -373,7 +376,7 @@ PIN_OUT1 = int(23)
 PIN_OUT2 = int(24)
 
 #Photo path
-FOLDER_PHOTOS = "/media/pi/PHOTOMATIC/Original/"
+FOLDER_PHOTOS = "/media/pi/PHOTOMATIC1/Original/"
 
 
 #*****************GPIO Settings*************
