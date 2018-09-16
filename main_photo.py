@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# coding: utf-8
 
 #######################################
 # IMPORTATION DES PACKAGES
@@ -25,11 +26,24 @@ import psutil
 #import physicalUI
 #import Reference as r
 
+global done
+global diaporamaRunning
+global w
+global h
+global fullScreen
+global screen
+
+done = False
+diaporamaRunning = False
+w = 1024
+h = 768
+fullScreen = False
 #######################################
 # FONCTIONS
 
-#Callback du switch run
-#def runCallback
+#Callback du screen toggle
+##def screenCallback(width,height):
+##    
 
 
 # Callback du bouton déclencheur
@@ -69,37 +83,44 @@ def cameraShutter():
     gpout=""
     
     try:
-        gpout = subprocess.check_output("gphoto2 --capture-image-and-download --keep-raw --filename " + imageFilePath, stderr=subprocess.STDOUT, shell=True)
-        
+        gpout = subprocess.check_output("gphoto2 --capture-image-and-download --keep-raw --filename " + imageFilePath, stderr=subprocess.STDOUT, shell=True).decode('utf-8')
+        displayText("Photo prise!",False)
         if 'ERROR' in gpout:
             print (gpout)
             logging.error(gpout)
+            print("La commande a échoué au niveau de Gphoto pour la photo:" + imageFilePath)
             raise IOError("La commande a échoué au niveau de Gphoto pour la photo:" + imageFilePath)
 	
     except subprocess.CalledProcessError as e:
+        print("La photo ne peut pas être prise. La caméra est probablement en cause")
+        print(e)
         logging.error("La photo ne peut pas être prise. La caméra est probablement en cause")
         logging.error(e)
         raise
 		
     except Exception as e:
+        print(e)
+        print("Exception")
         logging.error("La commande a échoué au niveau d'une exception générale pour cette photo:" + imageFilePath)
         logging.error(e)
         raise
     else:
+        print("Nouvelle Photo:")
+        print(imageFilePath)
         return imageFilePath
     
 # Fait pulser les leds de l'avant du photomaton    
-def ledPulse():
+def ledPulse(speed):
     for x in range (0,100,1):
         ledPWM.ChangeDutyCycle(x)
-        time.sleep(0.005)
+        time.sleep(speed)
     for x in range (100,0,-1):
         ledPWM.ChangeDutyCycle(x)
-        time.sleep(0.005)
+        time.sleep(speed)
         
 # Envoie les LEDs à fond les ballons 
 def ledFull():
-    ledPWM.ChangeDutyCycle(100)
+    ledPWM.ChangeDutyCycle(0)
     
 # Eteint les LEDs    
 def ledOff():
@@ -121,6 +142,31 @@ def randomFileName(dir):
     print(randomPath)
     return randomPath
 
+def aspectScale(img,bx,by):
+    ix,iy = img.get_size()
+    if ix>iy:
+        scale_factor = bx/float(ix)
+        sy = scale_factor*iy
+        if sy>by:
+            scale_factor = by/float(iy)
+            sx = scale_factor * ix
+            sy = by
+        else:
+            sx = bx
+    else:
+        scale_factor = by/float(iy)
+        sx = scale_factor * ix
+        if sx>bx:
+            scale_factor = bx/float(ix)
+            sx = bx
+            sy = scale_factor * iy
+        else:
+            sy = by
+            
+    sx = int(sx)
+    sy = int(sy)
+    return sx,sy
+
 # Affiche la photo sur l'écran
 def displayPicture(pictureFilePath,displayTime):
     """ 
@@ -128,10 +174,11 @@ def displayPicture(pictureFilePath,displayTime):
     en argument ainsi que le temps qu'elle doit s'afficher.
     """
     screen.fill((0,0,0))
-    
     img = pygame.image.load(pictureFilePath)
-    img = pygame.transform.scale(img,(w,h))
-    screen.blit(img,(0,0))
+    sx,sy = aspectScale(img,w,h)
+    img = pygame.transform.scale(img,(sx,sy))
+    imgRect = img.get_rect(center = screen.get_rect().center)
+    screen.blit(img,imgRect)
     pygame.display.flip()
     time.sleep(displayTime)
 	
@@ -161,7 +208,7 @@ def diaporama():
     Permet de passer un diaporama  des différentes image qui ont déjà été prises.
     La fonction prend le temps d'affichage de chaque image en argument.
     """
-    while True:
+    while not done:
         if diaporamaRunning == True:
             print("Diaporama Running")
 ##            displayText("Diaporama des photos précédentes",False)
@@ -180,7 +227,7 @@ def takePicture():
 
     try:
         photoPath = cameraShutter()
-
+        
     except subprocess.CalledProcessError:
         #physicalUI.ledEvent()
         print ("Unable to take photo as camera is not turned on, out of focus or battery is dead")
@@ -188,10 +235,12 @@ def takePicture():
         raise Exception("Camera is not responding, battery is dead, out of focus or camera is not turned on")
 
     else:
+        print("takePicture")
+        print(photoPath)
         return photoPath
         
 
-def photoCycle():
+def photoCycle(lastPicTime):
     """
     La fonction contient tout le cycle nécessaire pour prendre une photo.
     Contient les info PhysicalUI, gestion camera, affichage et texte.
@@ -200,25 +249,29 @@ def photoCycle():
     photoPathOriginal = ""
     
     # Display Text
-    displayText("Attention! Souriez!", True)
-    time.sleep(1)
-    displayText("3", True)
-    ledPulse()
-    displayText("2", True)
-    ledPulse()
-    displayText("1", True)
-    ledPulse()
-    displayText("Clic Clac!", True)
+    displayText("La photo va être prise!", True)
+    #time.sleep(0.5)
+    #displayText("3", True)
+    #ledPulse(0.005)
+    #displayText("2", True)
+    ledPulse(0.001)
+    displayText("", True)
+    ledPulse(0.001)
+    ledPulse(0.001)
+    #displayText("Clic Clac!", True)
     ledFull()
     # Take the picture
     photoPathOriginal = takePicture()
+    
+    print(photoPathOriginal)
     ledIdle()
-    displayPicture(photoPathOriginal,5)
-##    displayText("Photo prise!",False)
+    displayPicture(photoPathOriginal,lastPicTime)
+    
     
     # rajouter touts les infos physical UI, Diaporama et texte
     
     processSuccess = True
+
 
 def imageBlend(photoPath,logoPath):
 
@@ -235,12 +288,64 @@ def imageBlend(photoPath,logoPath):
     call([commandOverlay],shell=True)
     
     
-def checkKeyboardEvent():
-    global keyPressed
+##def checkKeyboardEvent():
+##    global keyPressed
+##    for event in pygame.event.get():
+##        if event.type == pygame.QUIT or (event.type is pygame.KEYDOWN and event.key == "escape" ):
+##            running = false
+##            pygame.quit()
+##            sys.exit
+    
+    
+def photomaticIntro():
+    
     for event in pygame.event.get():
-        if event.type == pygame.QUIT or (event.type is pygame.KEYDOWN and event.key == pygame.K_ESCAPE ):
+        if event.type == pygame.QUIT:
             pygame.quit()
-            sys.exit
+            quit()
+                
+    screen.fill((255,255,255))
+    largetext = pygame.font.SysFont("Helvetica",60)
+    smalltext = pygame.font.SysFont("Helvetica",30)
+    text = largetext.render("Photomatic 2.0",True,(0,0,0))
+    textRect = text.get_rect()
+    textRect.centerx = screen.get_rect().centerx
+    textRect.centery = screen.get_rect().centery
+    screen.blit(text,textRect)
+    text = smalltext.render("J. Braun | R. Huck | 2018",True,(0,0,0))
+    textRect = text.get_rect()
+    textRect.centerx = screen.get_rect().centerx
+    textRect.centery = (screen.get_rect().centery)+100
+    screen.blit(text,textRect)
+    text = largetext.render("Prenez une photo pour commencer!",True,(0,0,0))
+    textRect = text.get_rect()
+    textRect.centerx = screen.get_rect().centerx
+    textRect.centery = (screen.get_rect().centery)+200
+    screen.blit(text,textRect)
+    pygame.display.update()
+##    ledPulse(0.008)
+##    ledPulse(0.008)
+##    ledPulse(0.008)
+    #pygame.time.delay(5000)
+    
+#def checkScreenCallback(channel):
+    
+##    if (fullScreen == True):
+##        fullScreen != fullScreen
+####        pygame.display.quit()
+####        pygame.display.init()
+####        w = pygame.display.Info().current_w
+####        h = pygame.display.Info().current_h
+##        screenSize = (w,h)
+##        screen = pygame.display.set_mode(screenSize,pygame.FULLSCREEN) #,pygame.FULLSCREEN)
+##    else:
+##        fullScreen != fullScreen
+####        pygame.display.quit()
+####        pygame.display.init()
+####        w = pygame.display.Info().current_w
+####        h = pygame.display.Info().current_h
+##        screenSize = (w,h)
+##        screen = pygame.display.set_mode(screenSize)
     
 	
 # Main instructions for the photomatic loop
@@ -268,26 +373,8 @@ PIN_OUT1 = int(23)
 PIN_OUT2 = int(24)
 
 #Photo path
-FOLDER_PHOTOS = "/media/pi/BROWNIE/Original/"
+FOLDER_PHOTOS = "/media/pi/PHOTOMATIC/Original/"
 
-
-#*****************Screen Settings*************
-pygame.init()
-pygame.mouse.set_visible(False)
-##w = pygame.display.Info().current_w
-##h = pygame.display.Info().current_h
-w = 1024
-h = 768
-screenSize = (w,h)
-screen = pygame.display.set_mode(screenSize) #,pygame.FULLSCREEN)
-
-#*****************Logging Settings*************
-logging.basicConfig(filename="photomaticLog.txt",
-                    level=logging.DEBUG,
-                    format='%(levelname)s: %(asctime)s %(message)s',
-                    datefmt='%m/%d/%Y %I:%M:%S')
-
-logging.info("Le programme Photomatic est lancé!")
 
 #*****************GPIO Settings*************
 GPIO.setmode(GPIO.BCM)
@@ -298,11 +385,14 @@ GPIO.add_event_detect(PIN_SWITCH_IN,GPIO.FALLING, callback=buttonCallback, bounc
 
 #LED PWM
 GPIO.setup(PIN_PWM_LED, GPIO.OUT)
-ledPWM = GPIO.PWM(PIN_PWM_LED,100)
+ledPWM = GPIO.PWM(PIN_PWM_LED,1000)
 ledPWM.start(0)
 ledIdle()
 
-#Switch Run
+#Switch
+##GPIO.setup(PIN_SW3,GPIO.IN)
+##GPIO.add_event_detect(PIN_SW3,GPIO.BOTH)
+##GPIO.add_event_callback(PIN_SW3,checkScreenCallback)
 
 ##GPIO.setup(PIN_RUN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 ##GPIO.add_event_detect(PIN_RUN,GPIO.FALLING, callback=runCallback, bouncetime = 200)
@@ -310,13 +400,34 @@ ledIdle()
 #LED Out
 GPIO.setup(PIN_LED, GPIO.OUT)
 
-#Main Loop
-photomaticState = "idle"
+#*****************Screen Settings*************
+pygame.init()
+pygame.mouse.set_visible(False)
+w = pygame.display.Info().current_w
+h = pygame.display.Info().current_h
+#w = 1024
+#h = 768
 
-diaporamaRunning = False
+screenSize = (w,h)
+screen = pygame.display.set_mode(screenSize,pygame.FULLSCREEN)
+
+
+#*****************Logging Settings*************
+logging.basicConfig(filename="photomaticLog.txt",
+                    level=logging.DEBUG,
+                    format='%(levelname)s: %(asctime)s %(message)s',
+                    datefmt='%m/%d/%Y %I:%M:%S')
+
+logging.info("Le programme Photomatic est lancé!")
+
+
+
+#Main Loop
+photomaticState = "startup"
 
 
 diapoThread = Thread(target=diaporama)
+#diapoThread.daemon = True
 diapoThread.start()
 
 try:
@@ -330,18 +441,35 @@ else:
 DRIVE = get_mount_points()
 #print get_mount_points()
 
+# Splashscreen
+photomaticIntro()
+
 
 try:
-    while True:
-        # Check Keyboard Event
-        checkKeyboardEvent()
+    while not done:
+        #checkScreen(w,h)
         
-        if photomaticState == "idle":
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    done = True
+                    pygame.quit()
+                    sys.exit()
+            elif event.type == pygame.QUIT:
+                done = True
+                pygame.quit()
+                sys.exit()
+        
+        # Check Keyboard Event
+##        checkKeyboardEvent()
+        if photomaticState == "startup":
+            diaporamaRunning = False
+        elif photomaticState == "idle":
             diaporamaRunning = True
         elif photomaticState == "takePicture":
             diaporamaRunning = False
             try:
-                photoCycle()
+                photoCycle(lastPicTime)
                 
             except Exception as e:
                 logging.error("Problème dans la fonction photocycle")
@@ -354,11 +482,14 @@ try:
             photomaticState = "idle"
             
             
-        
+            
+
 
                 
 except KeyboardInterrupt:
     print ("Le process a été arrêté au moyen du clavier")
+    done = True
+    diapoThread.join()
     #Eteindre toutes les LEDs avec un signe distinctif
     logging.debug("Le programme a été arrêté au moyen du clavier")
     GPIO.cleanup()
