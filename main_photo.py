@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 # coding: utf-8
 
+#Test du script de pull pour vérifier que cela fonctionne
+
 #######################################
 # IMPORTATION DES PACKAGES
 
