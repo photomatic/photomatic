@@ -2,8 +2,12 @@
 # -*- coding: utf-8 -*-
 # coding: utf-8
 
+<<<<<<< HEAD
 # Essai du reset du commit
 
+=======
+#Test du script de pull pour vérifier que cela fonctionne
+>>>>>>> Essai du script de pull
 
 #######################################
 # IMPORTATION DES PACKAGES
