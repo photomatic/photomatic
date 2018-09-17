@@ -2,16 +2,12 @@
 # -*- coding: utf-8 -*-
 # coding: utf-8
 
-<<<<<<< HEAD
-<<<<<<< HEAD
+
 # Essai du reset du commit
 
-=======
 #Test du script de pull pour vérifier que cela fonctionne
->>>>>>> Essai du script de pull
-=======
-#Test du script de pull pour vérifier que cela fonctionne
->>>>>>> 73db38198b275777dbe1c77703cbe4f3994a5643
+
+
 
 #######################################
 # IMPORTATION DES PACKAGES
@@ -122,24 +118,31 @@ def cameraShutter():
     
 # Fait pulser les leds de l'avant du photomaton    
 def ledPulse(speed):
-    for x in range (0,100,1):
-        ledPWM.ChangeDutyCycle(x)
+    for x in range (0,5,1):
+        GPIO.output(PIN_PWM_LED,GPIO.LOW)
         time.sleep(speed)
-    for x in range (100,0,-1):
-        ledPWM.ChangeDutyCycle(x)
+        GPIO.output(PIN_PWM_LED,GPIO.HIGH)
         time.sleep(speed)
+    
+##    for x in range (0,100,1):
+##        ledPWM.ChangeDutyCycle(x)
+##        time.sleep(speed)
+##    for x in range (100,0,-1):
+##        ledPWM.ChangeDutyCycle(x)
+        
         
 # Envoie les LEDs à fond les ballons 
 def ledFull():
-    ledPWM.ChangeDutyCycle(0)
-    
+##    ledPWM.ChangeDutyCycle(0)
+    GPIO.output(PIN_PWM_LED,GPIO.LOW)
 # Eteint les LEDs    
 def ledOff():
-    ledPWM.ChangeDutyCycle(0)
-
+##    ledPWM.ChangeDutyCycle(100)
+    GPIO.output(PIN_PWM_LED,GPIO.HIGH)
 # LEDs a 20%
 def ledIdle():
-    ledPWM.ChangeDutyCycle(20)
+##    ledPWM.ChangeDutyCycle(100)
+    GPIO.output(PIN_PWM_LED,GPIO.HIGH)
     
 # Permet d'obtenir un chemin aléatoire pour le diaporama aléatoire
 def randomFileName(dir):
@@ -265,17 +268,18 @@ def photoCycle(lastPicTime):
     #displayText("3", True)
     #ledPulse(0.005)
     #displayText("2", True)
-    ledPulse(0.001)
+    ledPulse(0.003)
     displayText("", True)
-    ledPulse(0.001)
-    ledPulse(0.001)
+    ledPulse(0.3)
+    ledPulse(0.1)
+    
     #displayText("Clic Clac!", True)
     ledFull()
     # Take the picture
     photoPathOriginal = takePicture()
     
     print(photoPathOriginal)
-    ledIdle()
+    ledOff()
     displayPicture(photoPathOriginal,lastPicTime)
     
     
@@ -378,13 +382,13 @@ PIN_SW5 = int(22)
 PIN_SW6 = int(6)
 
 #Outputs
-PIN_PWM_LED = int(18)
+PIN_PWM_LED = int(24)
 PIN_LED = int(25)
 PIN_OUT1 = int(23)
-PIN_OUT2 = int(24)
+#PIN_OUT2 = int(24)
 
 #Photo path
-FOLDER_PHOTOS = "/media/pi/PHOTOMATIC/Original/"
+FOLDER_PHOTOS = "/media/pi/PHOTOMATIC4/Original/"
 
 
 #*****************GPIO Settings*************
@@ -395,9 +399,12 @@ GPIO.setup(PIN_SWITCH_IN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.add_event_detect(PIN_SWITCH_IN,GPIO.FALLING, callback=buttonCallback, bouncetime = 200)
 
 #LED PWM
-GPIO.setup(PIN_PWM_LED, GPIO.OUT)
-ledPWM = GPIO.PWM(PIN_PWM_LED,1000)
-ledPWM.start(0)
+
+GPIO.setup(PIN_PWM_LED,GPIO.OUT)
+GPIO.output(PIN_PWM_LED,GPIO.HIGH)
+##GPIO.setup(PIN_PWM_LED, GPIO.OUT)
+##ledPWM = GPIO.PWM(PIN_PWM_LED,1000)
+##ledPWM.start(0)
 ledIdle()
 
 #Switch
@@ -489,7 +496,8 @@ try:
                 
             else:
                 logging.debug("Une photo a été prise avec succès")
-                
+            
+            ledIdle()
             photomaticState = "idle"
             
             
