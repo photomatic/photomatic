@@ -3,11 +3,6 @@
 # coding: utf-8
 
 
-# Essai du reset du commit
-
-#Test du script de pull pour vérifier que cela fonctionne
-
-
 
 #######################################
 # IMPORTATION DES PACKAGES
@@ -29,9 +24,9 @@ from threading import Thread
 from glob import glob 
 import pyudev
 import psutil
+import os.path
+import requests
 
-#import physicalUI
-#import Reference as r
 
 global done
 global diaporamaRunning
@@ -39,12 +34,14 @@ global w
 global h
 global fullScreen
 global screen
+global galleryURL
 
 done = False
 diaporamaRunning = False
 w = 1024
 h = 768
 fullScreen = False
+galleryURL = 'http://romainhuck.com/upload.php'
 #######################################
 # FONCTIONS
 
@@ -59,20 +56,13 @@ def buttonCallback(channel):
     print("Bouton pressé")
     photomaticState = "takePicture"
 
-# Permet de monter le device USB si ce n'est pas le cas. Retrourne le chemin de la partition.
+# Permet de monter le device USB si ce n'est pas le cas. Retourne le chemin de la partition.
 def get_mount_points(devices=None):
     '''
     Cherche si un disque dur est connecté, crée un dossier "photomatic". Fait clignoter la led auxiliaire si un disque n'est pas connecté.
     :return: renvoie le chmemin vers lequel enregistrer les fichiers
     '''
-    
-##    context = pyudev.Context()
-##
-##    removable = [device for device in context.list_devices(subsystem='block', DEVTYPE='disk') if device.attributes.asstring('removable') == "1"]
-##    for device in removable:
-##        partitions = [device.device_node for device in context.list_devices(subsystem='block', DEVTYPE='partition', parent=device)]
-##        print("All removable partitions: {}".format(", ".join(partitions)))
-##        print("Mounted removable partitions:")
+
     for p in psutil.disk_partitions():
             #if p.device in partitions:
         print("  {}: {}".format(p.device, p.mountpoint))
@@ -123,25 +113,15 @@ def ledPulse(speed):
         time.sleep(speed)
         GPIO.output(PIN_PWM_LED,GPIO.HIGH)
         time.sleep(speed)
-    
-##    for x in range (0,100,1):
-##        ledPWM.ChangeDutyCycle(x)
-##        time.sleep(speed)
-##    for x in range (100,0,-1):
-##        ledPWM.ChangeDutyCycle(x)
-        
-        
+
 # Envoie les LEDs à fond les ballons 
 def ledFull():
-##    ledPWM.ChangeDutyCycle(0)
     GPIO.output(PIN_PWM_LED,GPIO.LOW)
 # Eteint les LEDs    
 def ledOff():
-##    ledPWM.ChangeDutyCycle(100)
     GPIO.output(PIN_PWM_LED,GPIO.HIGH)
 # LEDs a 20%
 def ledIdle():
-##    ledPWM.ChangeDutyCycle(100)
     GPIO.output(PIN_PWM_LED,GPIO.HIGH)
     
 # Permet d'obtenir un chemin aléatoire pour le diaporama aléatoire
@@ -156,6 +136,7 @@ def randomFileName(dir):
     print(randomPath)
     return randomPath
 
+# Scale l'image en fonction de la résolution de l'écran
 def aspectScale(img,bx,by):
     ix,iy = img.get_size()
     if ix>iy:
@@ -264,16 +245,10 @@ def photoCycle(lastPicTime):
     
     # Display Text
     displayText("La photo va être prise!", True)
-    #time.sleep(0.5)
-    #displayText("3", True)
-    #ledPulse(0.005)
-    #displayText("2", True)
     ledPulse(0.003)
     displayText("", True)
     ledPulse(0.3)
     ledPulse(0.1)
-    
-    #displayText("Clic Clac!", True)
     ledFull()
     # Take the picture
     photoPathOriginal = takePicture()
@@ -282,12 +257,9 @@ def photoCycle(lastPicTime):
     ledOff()
     displayPicture(photoPathOriginal,lastPicTime)
     
-    
-    # rajouter touts les infos physical UI, Diaporama et texte
-    
     processSuccess = True
 
-
+# Fonction de blend d'image avec un logo en png
 def imageBlend(photoPath,logoPath):
 
     image = Image.open(photoPath)
@@ -301,17 +273,35 @@ def imageBlend(photoPath,logoPath):
     
     commandOverlay = 'usr/bin/convert' + photoPath + logoPath +'-geometry'+ logoPositionX + logoPositionY +'-composite' + photoPath
     call([commandOverlay],shell=True)
-    
-    
-##def checkKeyboardEvent():
-##    global keyPressed
-##    for event in pygame.event.get():
-##        if event.type == pygame.QUIT or (event.type is pygame.KEYDOWN and event.key == "escape" ):
-##            running = false
-##            pygame.quit()
-##            sys.exit
-    
-    
+
+# Fonction de polling et d'envoi sur la galerie internet
+def sendToGallery():
+    oldFiles = dict([(f, None) for f in os.listdir(FOLDER_PHOTOS)])
+    while (1):
+        time.sleep(5)
+        newFiles = dict([(f, None) for f in os.listdir(FOLDER_PHOTOS)])
+        addedFiles = [f for f in newFiles if not f in oldFiles]
+        if addedFiles:
+            print(''.join(addedFiles))
+            fileToLoad = FOLDER_PHOTOS + ''.join(addedFiles)
+            print(fileToLoad)
+            uploadFile(fileToLoad)
+        oldFiles = newFiles
+
+# Fonction d'upload du fichier sur internet
+def uploadFile(filename):
+    try:
+        if (os.path.isfile(filename)):
+            files = {'phpGallery_images': open(filename, 'rb')}
+            r = requests.post(galleryURL, files=files, timeout=60)
+            print(r)
+        else:
+            print('Failed with path')
+    except:
+        print('Upload failed.')
+
+
+# Splashscreen du photomaton
 def photomaticIntro():
     
     for event in pygame.event.get():
@@ -338,11 +328,9 @@ def photomaticIntro():
     textRect.centery = (screen.get_rect().centery)+200
     screen.blit(text,textRect)
     pygame.display.update()
-##    ledPulse(0.008)
-##    ledPulse(0.008)
-##    ledPulse(0.008)
-    #pygame.time.delay(5000)
-    
+
+
+#Fonction à implémenter pour un toggle du plein écran ou non... pas essentiel au fonctionnement
 #def checkScreenCallback(channel):
     
 ##    if (fullScreen == True):
@@ -362,7 +350,9 @@ def photomaticIntro():
 ##        screenSize = (w,h)
 ##        screen = pygame.display.set_mode(screenSize)
     
-	
+#######################################################################################################################
+#######################################################################################################################
+
 # Main instructions for the photomatic loop
 
 #***************** Program Settings  *************
@@ -391,46 +381,39 @@ PIN_OUT1 = int(23)
 FOLDER_PHOTOS = "/media/pi/PHOTOMATIC4/Original/"
 
 
-#*****************GPIO Settings*************
+#***************** GPIO Settings *************
 GPIO.setmode(GPIO.BCM)
 
 #Pressbutton
 GPIO.setup(PIN_SWITCH_IN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.add_event_detect(PIN_SWITCH_IN,GPIO.FALLING, callback=buttonCallback, bouncetime = 200)
+GPIO.setup(PIN_SW3, GPIO.IN)
 
-#LED PWM
-
+#LED Relay
 GPIO.setup(PIN_PWM_LED,GPIO.OUT)
 GPIO.output(PIN_PWM_LED,GPIO.HIGH)
-##GPIO.setup(PIN_PWM_LED, GPIO.OUT)
-##ledPWM = GPIO.PWM(PIN_PWM_LED,1000)
-##ledPWM.start(0)
 ledIdle()
 
 #Switch
 ##GPIO.setup(PIN_SW3,GPIO.IN)
 ##GPIO.add_event_detect(PIN_SW3,GPIO.BOTH)
 ##GPIO.add_event_callback(PIN_SW3,checkScreenCallback)
-
 ##GPIO.setup(PIN_RUN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 ##GPIO.add_event_detect(PIN_RUN,GPIO.FALLING, callback=runCallback, bouncetime = 200)
 
 #LED Out
 GPIO.setup(PIN_LED, GPIO.OUT)
 
-#*****************Screen Settings*************
+#***************** Screen Settings *************
 pygame.init()
 pygame.mouse.set_visible(False)
 w = pygame.display.Info().current_w
 h = pygame.display.Info().current_h
-#w = 1024
-#h = 768
-
 screenSize = (w,h)
 screen = pygame.display.set_mode(screenSize,pygame.FULLSCREEN)
 
 
-#*****************Logging Settings*************
+#***************** Logging Settings *************
 logging.basicConfig(filename="photomaticLog.txt",
                     level=logging.DEBUG,
                     format='%(levelname)s: %(asctime)s %(message)s',
@@ -439,15 +422,22 @@ logging.basicConfig(filename="photomaticLog.txt",
 logging.info("Le programme Photomatic est lancé!")
 
 
+#***************** Main Loop *************
+##########################################
 
-#Main Loop
 photomaticState = "startup"
 
-
+# Start the Diaporama Thread
 diapoThread = Thread(target=diaporama)
 #diapoThread.daemon = True
 diapoThread.start()
 
+# Start the upload thread if the switch is selected
+if (GPIO.input(PIN_SW3)):
+    uploadThread = Thread(target=sendToGallery)
+    uploadThread = start()
+
+# trouve le mounting point du drive de sauvegarde
 try:
     DRIVE = get_mount_points()
 except Exception as e:
@@ -457,7 +447,6 @@ else:
     logging.debug("Disque dur connecté et chemin de fichier transmis")            
             
 DRIVE = get_mount_points()
-#print get_mount_points()
 
 # Splashscreen
 photomaticIntro()
@@ -465,8 +454,8 @@ photomaticIntro()
 
 try:
     while not done:
-        #checkScreen(w,h)
-        
+
+        # Check keyboard event
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
@@ -478,8 +467,7 @@ try:
                 pygame.quit()
                 sys.exit()
         
-        # Check Keyboard Event
-##        checkKeyboardEvent()
+        # State machine
         if photomaticState == "startup":
             diaporamaRunning = False
         elif photomaticState == "idle":
