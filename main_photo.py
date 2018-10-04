@@ -12,7 +12,7 @@ import subprocess
 ##
 from subprocess import check_output, CalledProcessError
 import time
-from time import gmtime, strftime, sleep
+from time import gmtime, strftime #, sleep
 import logging
 import RPi.GPIO as GPIO
 import os
@@ -41,7 +41,7 @@ diaporamaRunning = False
 w = 1024
 h = 768
 fullScreen = False
-galleryURL = 'http://romainhuck.com/upload.php'
+galleryURL = 'XXX URL XXX'
 #######################################
 # FONCTIONS
 
@@ -67,6 +67,7 @@ def get_mount_points(devices=None):
             #if p.device in partitions:
         print("  {}: {}".format(p.device, p.mountpoint))
 
+    return "{}".format(p.device)
 
 
 # Commande de l'appareil photo et chargement de l'image sur le pi
@@ -447,6 +448,8 @@ else:
     logging.debug("Disque dur connecté et chemin de fichier transmis")            
             
 DRIVE = get_mount_points()
+FOLDER_PHOTOS = DRIVE + '/Original'
+print(FOLDER_PHOTOS)
 
 # Splashscreen
 photomaticIntro()
