@@ -163,7 +163,7 @@ diapoThread.start()
 
 if (GPIO.input(PIN_SW3)):
     uploadThread = Thread(target=sendToGallery)
-    uploadThread = start()
+    uploadThread.start()
 
 
 # Find the drive mounting point
@@ -203,6 +203,7 @@ try:
                 sys.exit()
         
         # Main State Machine
+
         if photomaticState == "startup":
             diaporamaRunning = False
         elif photomaticState == "idle":
