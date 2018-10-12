@@ -43,7 +43,8 @@ except ImportError:
 # -- above lines try to install requests module if not present
 # -- if all went well, import required module again ( for global access)
 
-import photomatic
+
+########################################################################################################################
 
 global done
 global diaporamaRunning
@@ -52,6 +53,8 @@ global h
 global fullScreen
 global screen
 global galleryURL
+global drive
+
 
 done = False
 diaporamaRunning = False
@@ -59,6 +62,7 @@ w = 1024
 h = 768
 fullScreen = False
 galleryURL = 'XXX URL XXX'
+drive = 'PHOTOMATIC'
 #######################################
 # Callbacks and specific functions
 
@@ -126,7 +130,7 @@ ledIdle()
 GPIO.setup(PIN_LED, GPIO.OUT)
 
 #***********************************************
-#Photo path
+# Photo path by default
 
 FOLDER_PHOTOS = "/media/pi/PHOTOMATIC4/Original/"
 
@@ -183,7 +187,7 @@ except Exception as e:
 else:
     logging.debug("Disque dur connecté et chemin de fichier transmis")            
 
-#FOLDER_PHOTOS = DRIVE + '/Original'
+FOLDER_PHOTOS = DRIVE + '/Original'
 print(FOLDER_PHOTOS)
 
 # Splashscreen
@@ -247,16 +251,13 @@ except KeyboardInterrupt:
 # Permet de monter le device USB si ce n'est pas le cas. Retourne le chemin de la partition.
 
 def get_mount_points(devices=None):
-    '''
-    Cherche si un disque dur est connecté, crée un dossier "photomatic". Fait clignoter la led auxiliaire si un disque n'est pas connecté.
-    :return: renvoie le chmemin vers lequel enregistrer les fichiers
-    '''
 
     for p in psutil.disk_partitions():
-            #if p.device in partitions:
+        # if p.device in partitions:
         print("  {}: {}".format(p.device, p.mountpoint))
-
-    return "{}".format(p.device)
+        if path in p.mountpoint:
+            print("Disque détecté:" + "{}".format(p.mountpoint))
+            return "{}".format(p.mountpoint)
 
 
 ########################################################################################################################
