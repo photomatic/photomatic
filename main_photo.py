@@ -61,7 +61,7 @@ diaporamaRunning = False
 w = 1024
 h = 768
 fullScreen = False
-galleryURL = 'XXXX'
+galleryURL = 'http://romainhuck.com/upload.php'
 drive = 'PHOTOMATIC'
 #######################################
 # Callbacks and specific functions
